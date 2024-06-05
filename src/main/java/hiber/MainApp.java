@@ -6,13 +6,14 @@ import hiber.model.User;
 import hiber.service.UserService;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import javax.persistence.NonUniqueResultException;
 import java.sql.SQLException;
 import java.util.List;
 
 public class MainApp {
    public static void main(String[] args) throws SQLException {
-      AnnotationConfigApplicationContext context = 
-            new AnnotationConfigApplicationContext(AppConfig.class);
+      AnnotationConfigApplicationContext context =
+              new AnnotationConfigApplicationContext(AppConfig.class);
 
       UserService userService = context.getBean(UserService.class);
 
@@ -41,6 +42,24 @@ public class MainApp {
          System.out.println("Car Model = "+user.getCar().getModel());
          System.out.println("Car Series = "+user.getCar().getSeries());
          System.out.println();
+      }
+
+      String carModel = "Toyota";
+      int carSeries = 123;
+      try {
+         User userWithCar = userService.getUserByCarModelAndSeries(carModel, carSeries);
+         if (userWithCar != null) {
+            System.out.println("User found:");
+            System.out.println("Name: " + userWithCar.getFirstName());
+            System.out.println("Last Name: " + userWithCar.getLastName());
+            System.out.println("Email: " + userWithCar.getEmail());
+            System.out.println("Car Model: " + userWithCar.getCar().getModel());
+            System.out.println("Car Series: " + userWithCar.getCar().getSeries());
+         } else {
+            System.out.println("User not found for car model: " + carModel + " and series: " + carSeries);
+         }
+      } catch (NonUniqueResultException e) {
+         System.out.println(e.getMessage());
       }
 
       context.close();

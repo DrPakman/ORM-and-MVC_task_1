@@ -5,6 +5,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -20,7 +21,6 @@ public class UserDaoImp implements UserDao {
    }
 
    @Override
-   @SuppressWarnings("unchecked")
    public List<User> listUsers() {
       TypedQuery<User> query=sessionFactory.getCurrentSession().createQuery("from User");
       return query.getResultList();
@@ -31,7 +31,15 @@ public class UserDaoImp implements UserDao {
               "from User u where u.car.model = :model and u.car.series = :series", User.class);
       query.setParameter("model", model);
       query.setParameter("series", series);
-      return query.getSingleResult();
+      List<User> users = query.getResultList();
+      if (users.isEmpty()) {
+         return null; // Пользователь не найден
+      } else if (users.size() == 1) {
+         return users.get(0); // Возвращаем единственного пользователя
+      } else {
+         throw new NonUniqueResultException("Несколько пользователей найдено для модели: " + model + " и серии: " + series);
+      }
    }
+
 
 }
